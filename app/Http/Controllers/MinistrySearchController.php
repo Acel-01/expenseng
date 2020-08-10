@@ -3,36 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Ministry;
+use App\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MinistrySearchController extends Controller
 {
+    public function latestDate($code){
+        $latestExpenses = Payment::select('*')
+        ->where('payment_code', 'LIKE', "$code%")
+        ->orderby('payment_date', 'desc')
+        ->first();
+
+        return $latestExpenses->payment_date;
+    }
+
     public function filterExpenses(Request $request)
     {
-        $id = $request->query('id');
-        echo "php-id {$id} <br />";
+
+        $id = $request->get('id');
+        $ministry = Ministry::find($id);
+        $code = $ministry->code;
+        $latestDate =  $this->latestDate($code);
         $givenTime = null;
         if ($request->has('date')) {
-            $givenTime = $request->query('date');
+            $givenTime = $request->get('date');
         }
-
-        echo 'fullurl: '. $request->fullUrl();
-        echo "<br />";
-        var_dump($request->all());
-        echo "<br />";
-        echo 'query_id: '. $request->query('id');
-        echo "<br />";
-        echo 'query_date: '. $request->query('date');
-        echo "<br />";
-        echo 'input: '. $request->input('id');
-        echo "<br />";
-        
-        
-        $yr = date("Y");
-        $ministry = Ministry::find($id);
-        echo $ministry;
-        $code = $ministry->code;
+       
         $day_pattern = '/(\d{4})-(\d{2})-(\d{2})/';
         $mth_pattern = '/([A-Za-z]+)\s(\d{4})/';
         $yr_pattern = '/\d{4}/';
@@ -56,16 +53,21 @@ class MinistrySearchController extends Controller
         } else {
             $payments = DB::table('payments')
                     ->where('payment_code', 'LIKE', "$code%")
-                    ->whereYear('payment_date', '>=', "$yr");
+                    ->whereDate('payment_date', $latestDate);
         };
 
+        if ($request->has('query')) {
+            $query = $request->get('query');
+            $payments = $payments->where('description', 'LIKE', "%$query%");
+        }
+
         if ($request->has('sort')) {
-            $payments = $payments->orderby('amount', $request->query('sort'));
+            $payments = $payments->orderby('amount', $request->get('sort'));
         } else {
             $payments = $payments->orderby('payment_date', 'desc');
         }
         
-        $payments = $payments->paginate(2);
+        $payments = $payments->paginate(10);
        
         return view('pages.ministry.pagination')
         ->with(['ministry'=> $ministry,

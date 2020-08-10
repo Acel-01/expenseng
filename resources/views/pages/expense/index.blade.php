@@ -1,12 +1,23 @@
 @extends('layouts.master')
 
 @push('css')
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  {{-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> --}}
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="{{asset('css/index.blade.css')}}">
   <link rel="stylesheet" href="{{ asset('css/ministry-report-table.css') }}">
   <link rel="stylesheet" href="{{ asset('css/filter.css') }}">
   <link rel="stylesheet" href="{{asset('css/breadcrumb.css') }}">
-	<link rel="stylesheet" href="{{ asset('css/ministry_report_comments.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/ministry_report_comments.css') }}">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-174166304-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-174166304-1');
+</script>
+
 
     @toastr_css
 
@@ -20,12 +31,12 @@
 {{ Breadcrumbs::render('expense.reports') }}
     <div class="row">
       <div class="col-md-12 col-lg-12 section-heading">
-        <h1 class="section-heading-title">Expense Report</h1>
-        <p class="section-heading-paragraph">Expense report gives an insight to how much is being spent by the federal government on a daily basis and how much is spent in major sectors in Nigeria.</p>
-        <h5>Subscribe to daily Expense Report</h5>
+        <h1 class="section-heading-title">Daily Report</h1>
+        <p class="section-heading-paragraph">Daily report gives an insight to how much is being spent by the federal government on a daily basis.</p>
+        <h5>Subscribe to get daily expense report</h5>
         <span>
             @include('partials.modals.subscription')
-     
+
       </span>
 
     </div>
@@ -34,22 +45,23 @@
   <div class="section-button">
     <div class="container">
       <div class="row px-1">
-        <div class="btn-group col-lg-12 col-md-12 d-flex justify-content-between responsive-button nav nav-tabs" style="overflow-x: scroll;">
-          <a class="btn-marg text-left active button" data-toggle="tab" role="tab" href="#navchart">Daily Expenditure</a>
-          <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="">Power</a>
+        {{-- <div class="btn-group col-lg-12 col-md-12 d-flex responsive-button nav nav-tabs" >
+          <a class="ml-3 text-left active button" data-toggle="tab" role="tab" href="#navchart">Daily Expenditure</a>
+          <!-- Ministry Sector Tabs -->
+          <!-- <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="">Power</a>
           <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="">Education</a>
           <a class="btn-marg text-left button" data-toggle="tab" role="tab"href="">Security</a>
           <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="">Agriculture</a>
-          <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="">Infastructure</a>
-          <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="#comments">Comments</a>
-        </div>
+          <a class="btn-marg text-left button" data-toggle="tab" role="tab" href="">Infastructure</a> -->
+          <a class="btn-marg ml-5 text-left button" data-toggle="tab" role="tab" href="#comments">Comments</a>
+        </div> --}}
       </div>
     </div>
   </div>
 </section>
 <div class="tab-content">
     <div class="tab-content">
-      <div class="container tab-pane show fade active" id="navchart" role="tabpanel">
+      {{-- <div class="container tab-pane show fade active" id="navchart" role="tabpanel">
         <div class="dropdown nav m-4">
           <button class="btn btn-outline-light dropdown-toggle text-success nav-chart" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Chart
@@ -60,92 +72,27 @@
           </div>
         </div>
 
-        <div class="container col-sm-12 col-md-7">
-          <div class="table-top d-flex justify-content-between align-items-center">
-            <h4>Graph(Daily):12th May 2019</h4>
-            <button class="nav-button" data-toggle="modal" data-target="#filterModal">Filter<i class="fas fa-filter px-1" style="font-size: var(--fs-reg);"></i></button>
-						</div>
-						<!-- Filter Modal -->
-						<div id="modal" class="row justify-content-center">
-                        <div class="col-md-8">
-                            <div class="modal fade" id="filterModal" tabindex="-1" role="dialog" aria-labelledby="filterModalLabel" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <!-- Header -->
-                                    <div class="modal-header">
-                                    <h5 class="modal-title" id="filterModalLabel">Filter</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                    </div>
-                                    <!-- Body -->
-                                    <div class="modal-body">
-                                        <section>
-                                            <p id="view" class="font-weight-bold">View by</p>
-                                            <div id="date-btn" class="row">
-                                                <div class="col-4">
-                                                <button id="day" class="btn btn-block btn-date active">Day</button>
-                                                </div>
-                                                <div class="col-4">
-                                                <button id="month" class="btn btn-block btn-date">Month</button>
-                                                </div>
-                                                <div class="col-4">
-                                                <button id="year" class="btn btn-block btn-date">Year</button>
-                                                </div>
-                                            </div>
-                                        </section>                   
-                                        <br>
-                                        <section class="row">
-                                            <div class="col-12" >
-                                            <i class="fa fa-calendar" aria-hidden="true"></i>
-                                            <input placeholder="Select Date" name="select-date" id="select-date"  class="form-control">
-                                            <input placeholder="Select Month" name="select-month" id="select-month" class="monthYearPicker form-control" />
-                                            <input placeholder="Select Year" name="select-year" id="select-year" class="yearPicker form-control" />
-                                            <small id="date-format-err"></small>
-                                        </section>
-                                        <br>
-                                        <section id="sort-options">
-                                            <p class="font-weight-bold">Sort by</p>
-                                            <div>
-                                                <button id="desc" class="btn btn-block btn-amount">Amount (Highest to Lowest)</button>
-                                                <button id="asc" class="btn btn-block btn-amount">Amount (Lowest to Highest)</button>
-                                            </div>
-                                        </section>
-                                    </div>
-                                    <!-- Footer -->
-                                    <div class="modal-footer">
-                                    <button type="button" id="apply-filter" class="btn btn-block active mx-5" data-dismiss="modal">Apply Filter</button>
-                                    </div>
-                                </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                     <!-- End of Filter Modal -->
-          <div class="main-chart">
-            <div id ="chart">
-
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class=" tab-pane fade" id="table" role="tabpanel">
+       @include('pages.expense.chart') 
+      </div> --}}
+      <div id="table" role="tabpanel">
         <div class="dropdown nav container">
-          <button class="btn btn-outline-light dropdown-toggle text-success nav-chart" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {{-- <button class="btn btn-outline-light dropdown-toggle text-success nav-chart" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Table
           </button>
           <div class="dropdown-menu nav-tabs-dropdown" aria-labelledby="dropdownMenuButton">
             <a class="dropdown-item not" data-toggle="tab" role="tab" href="#navchart">Chart</a>
             <a class="dropdown-item" data-toggle="tab" role="tab" href="#table">Table</a>
+          </div> --}}
+          <div id="search-tools" class="container d-flex justify-content-end mt-1 px-4">
+            <div id="search-area" class="col-md-5 col-lg-4 mt-3 mt-md-0 px-0">
+                <input type="search" data-id="apply-filter-exp" id="expense_search" class="form-control form-control-lg mb-2" style="font-family:Arial, FontAwesome; height:38px; border: 1px solid var(--clr-dark);" placeholder="&#xf002; Search for a project">
+                    @csrf
+            </div>
           </div>
-        @include('partials.expense-table')
+          @include('partials.expense-table')
         </div>
       </div>
     </div>
-    <div class="container tab-pane fade" id="comments" role="tabpanel">
-      @include('partials.comments')
-    </div>
-  </div>
 </div>
 
 
@@ -153,11 +100,10 @@
 <!-- Footer End -->
 
 @section('js')
-<script type="text/javascript" src="/js/expenditure_report.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script type="text/javascript" src="/js/filter.js"></script>
-<script type="text/javascript" src="/js/index_blade.js"></script>
-<script src="{{ asset('js/index.js') }}"></script>
-@jquery
+{{-- <script type="text/javascript" src="/js/report_chart.js"></script> --}}
+{{-- <script src="{{ asset('js/index.js') }}"></script> --}}
 @toastr_js
 @toastr_render
 

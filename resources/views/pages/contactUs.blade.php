@@ -3,6 +3,15 @@
   <title>FG Expense - Contact</title>
   <link rel="stylesheet" href="{{asset('css/breadcrumb.css') }}">
   <link rel="stylesheet" href="{{ asset('css/contactUs.css') }}">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-174166304-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-174166304-1');
+</script>
 @endpush
 
 @section('content')
@@ -40,7 +49,10 @@
                 <div class="form-group col-md-12 second">
                     <input type="email" name="email" class="form-control col-md-5" id="email" placeholder="Email Address" required>
 
-                    <input type="tel" name="phone" class="form-control col-md-5" id="phone" placeholder="Phone number" required>
+                    <input type="tel" name="phone" class="form-control col-md-5" id="phone" placeholder="Phone number">
+                </div>
+                <div class="form-group col-md-12">
+                    <input type="text"  name="subject" class="form-control" id="subject" placeholder="Subject" required>
                 </div>
                 <div class="form-group col-md-12">
                     <textarea type="text" class="form-control" id="message" name="message" placeholder="Your message" rows="5" required></textarea>
@@ -54,34 +66,7 @@
             <aside class="banner contact-green">
                 <h4 class="pt-3">Keep in touch with us</h4>
                 <hr class="banner-hr">
-                <div class="row">
-                    <div class="align col-sm-4">
-                        <span class="fa-stack fa-sm">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-map-marker fa-stack-1x fa-inverse"></i>
-                        </span>
-                    </div>
-                    <div class="align col-sm-8 text-left">
-                        <p>Plot 234, Bowo Avenue,</p>
-                        <p>Victoria Island,</p>
-                        <p>Lagos, Nigeria.</p>
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="align col-sm-4">
-                        <span class="fa-stack fa-sm">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-phone fa-stack-1x"></i>
-                        </span>
-                    </div>
-                    <div class="align col-sm-8 text-left">
-                        <p>+234 904 234 5678</p>
-                        <p>+234 904 234 5678</p>
-                        <p>+234 904 234 5678</p>
-                    </div>
-                </div>
-                <hr>
+     
                 <div class="row">
                     <div class="align col-sm-4">
                         <span class="fa-stack fa-sm">
@@ -130,7 +115,7 @@
         <div class="row">
             <aside class="col-md-7">
                 <img class="twitter-back" src="{{ asset('/images/Vector.png') }}" alt="twitter background">
-                <button class="button button-tw"><i class="fab fa-twitter"></i> @ExpenseNG</button>
+                <button class="button button-tw"> <a href="https://twitter.com/expenseng" target="_blank">@expenseNG</a></button>
             </aside>
             <aside class="col-md-5">
                 <h2 class="pt-5 pb-4 mb-5">Join the conversation</h2>

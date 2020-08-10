@@ -16,15 +16,20 @@ use App\User;
  */
 
 
+
 Route::get('/', 'HomeController@index')->name('home');
 Route::get('/about', 'PageController@about')->name('about');
 Route::get('/contact', 'PageController@contactUs')->name('contact');
+Route::get('/teams', 'PageController@ourteam')->name('teams');
 Route::get('/report', 'PageController@error404')->name('error404');
 Route::get('/faq', 'PageController@faq')->name('faq');
 Route::get('/privacy', 'PageController@privacy')->name('privacy');
 Route::get('/search', 'PageController@search')->name('search');
 Route::get('/handles', 'PageController@handles')->name('handles');
 Route::get('/changeMinistryCharts/{ministry}', 'HomeController@MinistryCharts')->name('ministry_expenses_charts');
+Route::post('/handles', 'PageController@SearchHandles')->name('search-handles');
+Route::post('/handles/search', 'PageController@SearchHandle')->name('search-handle');
+
 
 // Feedback
 Route::post('/feedback', 'FeedbackController@create')->name('feedback');
@@ -39,7 +44,7 @@ Route::get('/contactEmail', 'PageController@contactEmail')->name('contactEmail')
  * Reports Endpoints
  */
 Route::get('/expense/report', 'ExpenseController@report')->name('expense.reports');
-Route::post('/subscribe', 'SubscriptionController@store');
+Route::post('/subscribe', 'SubscriptionController@store')->name('subscribe');
 
 Route::get('/expense/ministry', 'ExpenseController@ministry')->name('expense.ministry');
 
@@ -54,13 +59,16 @@ Route::post('/ministries', 'MinistryController@store')->name('ministry_store');
 Route::patch('/ministries/{ministry}', 'MinistryController@update')->name('ministry_update');
 Route::delete('/ministries/{ministry}', 'MinistryController@destroy')->name('ministry_destroy');
 Route::post('/ministries/autocomplete', 'MinistryController@autocomplete')->name('ministry_autocomplete');
-Route::get('/expense/filterExpensesAll/{id}/{date}/{sort}', 'ExpenseController@filterExpensesAll')->name('all_ministries_filter_expenses');
+Route::get('/expense/filterExpensesAll/{id}/{date}/{sort}/{sector?}', 'ExpenseController@filterExpensesAll')->name('all_ministries_filter_expenses');
+Route::get('/expense/filterExpensesChart/{id}/{date}/{sort}/{chartType?}', 'ExpenseController@chartReport')->name('all_ministries_filter_chart');
+Route::post('/expense/filterExpensesAll/{id}/{date}/{sort}/{sector?}', 'ExpenseController@filterExpensesAll')->name('all_ministries_search_expenses');
 
 /**
  * Contractor Endpoints
  */
 Route::get('/contractors', 'CompanyController@index')->name('contractors');
 Route::get('/contractors/{company}', 'CompanyController@show')->name('contractors.single');
+Route::post('/contractors/search', 'CompanyController@searchContractors')->name('contractors.search');
 
 Route::get('/ministry-graph', 'PageController@ministryGraph')->name('ministry-graph');
 Route::get('/expense-graph', 'PageController@expenseGraph')->name('expense-graph');
@@ -68,6 +76,7 @@ Route::get('/project-modal', 'PageController@projectModal')->name('project-modal
 
 Route::get('/ministry/getUrl', 'PageController@ministryGetUrl')->name('ministry_get_url');
 Route::get('/ministry/filterExpenses', 'MinistrySearchController@filterExpenses')->name('ministry_filter_expenses');
+Route::post('ministry/filterExpenses', 'MinistrySearchController@filterExpenses')->name('ministry_search_expenses');
 
 /**
  * Email sending API
@@ -119,7 +128,7 @@ Route::get('/accessibility', 'PageController@accessibility')->name('accessibilit
  //    Route::get('/dashboard', 'DashboardController@index')->name('dashboard'); // Matches The "/admin/dashboard" URL
 
 
- Route::group(['prefix' => 'admin', 'middleware' => ['auth'] ], function(){
+ Route::group(['prefix' => 'admin', 'middleware' => ['auth'] ], function () {
      Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
       // Matches The "/admin/dashboard" URL
      Route::delete('/activity/delete/{activity_id}', 'DashboardController@deleteActivity')->name('activity.delete');
@@ -161,6 +170,20 @@ Route::get('/accessibility', 'PageController@accessibility')->name('accessibilit
       Route::delete('/ministry/delete/{ministry_id}', 'Admin\MinistryController@deleteMinistry')
       ->name('ministry.delete');
 
+      // SECTOR CRUD
+      Route::get('/sector/create', 'SectorController@viewCreateSector')
+      ->name('sector.create');
+      Route::post('/sector/create', 'SectorController@createSector')
+      ->name('create.sector');
+      Route::get('/sector/view', 'SectorController@viewSectors')
+      ->name('sector.view');
+      Route::get('/sector/edit/{sector_id}', 'SectorController@showEditForm')
+      ->name('sector.view.edit');
+      Route::put('/sector/edit/{sector_id}', 'SectorController@editSector')
+      ->name('sector.edit');
+      Route::delete('/sector/delete/{sector_id}', 'Admin\SectorController@deleteSector')
+      ->name('sector.delete');
+
       //People CRUD
       Route::get('/admin/{company}/{people}', 'CompanyController@showPeople');
 
@@ -176,14 +199,17 @@ Route::get('/accessibility', 'PageController@accessibility')->name('accessibilit
      //Profile Page
      Route::get('/profile', 'ProfileController@viewProfile')->name('profile');
      Route::get('/user/profile', 'ProfileController@index')->name('users.profile');
-     Route::get('/profile/edit/{user_id}', 'ProfileController@edit')->name('users.edit');
-     Route::put('/profile/edit/{user_id}', 'ProfileController@update')->name('users.update');
-     Route::put('/profile/change_password/{user_id}', 'ProfileController@updatePassword')->name('users.change_password');
+     Route::get('/profile/edit/{user_id}', 'ProfileController@edit')->name('profile.edit');
+     Route::put('/profile/edit/{user_id}', 'ProfileController@update')->name('profile.update');
+     Route::put('/profile/change_password/{user_id}', 'ProfileController@updatePassword')->name('profile.change_password');
 
      //Settings Page
      Route::get('/user/settings', 'SettingsController@index')->name('users.settings');
      Route::put('/settings/change_password/{user_id}', 'SettingsController@ChangePassword')->name('settings.change_password');
+     Route::post('/user/settings/update', 'SettingsController@updateSidebar')->name('sidebar.settings');
 
+
+    
      // Cabinet CRUD
      Route::get('/cabinet/create', 'CabinetController@create')
      ->name('cabinet.create');
@@ -231,6 +257,7 @@ Route::get('/accessibility', 'PageController@accessibility')->name('accessibilit
      Route::get('/feedback/ignore/{id}', 'FeedbackController@ignore')
      ->name('feedback.ignore');
 
+
      // COMMENTS ROUTES
     Route::get('/comments', 'Admin\CommentController@index')->name('comments');  //Displays the index page for all comments
 
@@ -247,30 +274,94 @@ Route::get('/accessibility', 'PageController@accessibility')->name('accessibilit
 
       Route::delete('/payments/delete/{payment_id}', 'Admin\PaymentController@destroy')->name('payments.delete');
 
+      // Team CRUD
+      Route::get('/team/create', 'TeamController@viewCreateTeam')
+      ->name('team.create');
+      Route::post('/team/create', 'TeamController@createTeam')
+      ->name('create.team');
+      Route::get('/team/view', 'TeamController@viewTeam')
+      ->name('team.view');
+      Route::get('/team/edit/{team_id}', 'TeamController@showEditForm')
+      ->name('team.view.edit');
+      Route::put('/team/edit/{team_id}', 'TeamController@editTeam')
+      ->name('team.edit');
+      Route::delete('/team/delete/{team_id}', 'TeamController@deleteTeam')
+      ->name('team.delete');
+
+
       //Sheets
       Route::get('/sheets', 'Admin\SheetController@viewSheets')->name('sheets');
+      Route::get('/sheet/parse/{sheet_id}', 'Admin\SheetController@parseSheet')
+      ->name('sheet.parse');
 
-
-
-
-
+      Route::get('/website_stats', 'Website_Statistics_Controller@index')->name('website_stats');
  });
 
 
+/* Admin backend routes - CRUD for posts, categories, and approving/deleting submitted comments */
+    Route::group(['prefix' => 'admin/blog', 'middleware' => 'auth'], static function () {
+
+        Route::get('/', 'Admin\ManagePostsController@index')->name('blogetc.admin.index');
+
+        Route::get('/add_post', 'Admin\ManagePostsController@create')->name('blogetc.admin.create_post');
+        Route::post('/add_post', 'Admin\ManagePostsController@store')->name('blogetc.admin.store_post');
+
+        Route::get('/edit_post/{blogPostId}', 'Admin\ManagePostsController@edit')->name('blogetc.admin.edit_post');
+        Route::patch('/edit_post/{blogPostId}', 'Admin\ManagePostsController@update')->name('blogetc.admin.update_post');
+
+        Route::group(['prefix' => 'image_uploads', 'middleware' => 'auth'], static function () {
+            Route::get('/', 'Admin\ManageUploadsController@index')->name('blogetc.admin.images.all');
+
+            Route::get('/upload', 'Admin\ManageUploadsController@create')->name('blogetc.admin.images.upload');
+            Route::post('/upload', 'Admin\ManageUploadsController@store')->name('blogetc.admin.images.store');
+
+            Route::get('/post/{postId}/delete-images', 'Admin\ManageUploadsController@deletePostImage')->name('blogetc.admin.images.delete-post-image');
+            Route::delete('/post/{postId}/delete-images', 'Admin\ManageUploadsController@deletePostImageConfirmed')->name('blogetc.admin.images.delete-post-image-confirmed');
+        });
+
+        Route::post('/delete_post/{blogPostId}', 'Admin\ManagePostsController@destroy')->name('blogetc.admin.destroy_post');
+
+        Route::group(['prefix' => 'comments'], static function () {
+            Route::get('/', 'Admin\ManageCommentsController@index')->name('blogetc.admin.comments.index');
+            Route::patch('/{commentId}', 'Admin\ManageCommentsController@approve')->name('blogetc.admin.comments.approve');
+
+            Route::delete('/{commentId}', 'Admin\ManageCommentsController@destroy')->name('blogetc.admin.comments.delete');
+        });
+
+        Route::group(['prefix' => 'categories', 'middleware' => 'auth'], static function () {
+            Route::get('/', 'Admin\ManageCategoriesController@index')->name('blogetc.admin.categories.index');
+
+            Route::get('/add_category', 'Admin\ManageCategoriesController@create')->name('blogetc.admin.categories.create_category');
+            Route::post('/add_category', 'Admin\ManageCategoriesController@store')->name('blogetc.admin.categories.store_category');
+
+            Route::get('/edit_category/{categoryId}', 'Admin\ManageCategoriesController@edit')->name('blogetc.admin.categories.edit_category');
+            Route::patch('/edit_category/{categoryId}', 'Admin\ManageCategoriesController@update')->name('blogetc.admin.categories.update_category');
+
+            Route::delete('/delete_category/{categoryId}', 'Admin\ManageCategoriesController@destroy')->name('blogetc.admin.categories.destroy_category');
+        });
+    });
 
 
 
 
- Auth::routes();
+
+    Route::get('/ggg', 'Website_Statistics_Controller@dds')->name('ggg');
+
+
+
+    Auth::routes();
 
 
 //admin route
- Route::get('/admin', function () {
-     return redirect(route('dashboard'));
- });
+    Route::get('/admin', function () {
+        return redirect(route('dashboard'));
+    });
 
- Route::get('/startRT', 'TwitterBot@startLiveRetweet');
- Route::get('/stopRT', 'TwitterBot@stopLiveRetweet');
- Route::post('/post_tweet', 'TwitterBot@sendTweet');
- Route::get('/tweets', 'TwitterBot@getTweet');
- Route::delete('delete_tweet', 'TwitterBot@delete');
+    Route::get('/startRT', 'TwitterBot@startLiveRetweet');
+    Route::get('/stopRT', 'TwitterBot@stopLiveRetweet');
+    Route::post('/post_tweet', 'TwitterBot@sendTweet');
+    Route::post('/retweet', 'TwitterBot@retweet');
+    Route::get('/tweets', 'TwitterBot@getTweet');
+    Route::delete('delete_tweet', 'TwitterBot@delete');
+    Route::post('parse_sheet', 'SheetParsing@parse');
+    Route::post('tweet_payment', "TwitterBot@tweetPayment");

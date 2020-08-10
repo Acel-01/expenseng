@@ -5,33 +5,41 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use NumberFormatter;
 use App\Ministry;
+use Laravel\Scout\Searchable;
 
 class Payment extends Model
 {
-    
+    use Searchable;
 
-    public $fillable = ['payment_no'	,'payment_code'	,'organization'	,'beneficiary'	,'amount','description', 'payment_date'];
-    // public $fillable = ['name', 'shortname', 'industry', 'ceo', 'twitter'];
+protected $guarded = ['id'];
 
     public function amount(){
         return number_format($this->amount, 2, '.', ',');
     }
 
-/**
+    /**
      * Return ministry name;
      */
     public function ministry(){
         $ministryCode = substr($this->payment_code, 0, 4); //ministry code is first 4 digits in a payment code
-        $ministry_check = Ministry::where('code', 'LIKE', "$ministryCode%")->get();
+        $ministry_check = Ministry::where('code', 'LIKE', "$ministryCode%")->first();
         if($ministry_check){
-        $ministry = $ministry_check[0]->only(['shortname', 'name','cabinet','twitter']);
+        $ministry = $ministry_check->only(['shortname', 'name','cabinet','twitter']);
         }else{
             $ministry = null;
         }
         return $ministry; //return array keyed ['name' => '', 'shortname' => '']
     }
 
-    
+    /**
+     * Get related ministry
+     */
+    public function getRelatedMinistry(){
+        $ministryCode = substr($this->payment_code, 0, 4); //ministry code is first 4 digits in a payment code
+        // return $this->belongsTo(Ministry::class)->where('');
+    }
+
+
 
     /**
      * Return Organizations name ie. MDAs;
@@ -46,5 +54,12 @@ class Payment extends Model
             $organization = $this->organization;
         }
         return $organization; //return array keyed ['name' => '', 'shortname' => '']
+    }
+
+    public function company(){
+        $company = Company::select('*')
+                   ->where('name', $this->beneficiary)
+                   ->get();
+        return $company;
     }
 }

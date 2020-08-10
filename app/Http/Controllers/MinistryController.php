@@ -6,6 +6,7 @@ use App\Ministry;
 use App\Payment;
 use App\Sector;
 use App\Activites;
+use App\Cabinet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -91,21 +92,21 @@ class MinistryController extends Controller
      */
     public function profile(Request $request)
     {
-        
+
         if ($request->has('ministry')) {
             $ministry_name = $request->get('ministry');
             $result = DB::table('ministries')
                 ->where('name', '=', "$ministry_name")
-                ->paginate(8);
+                ->get();
             $ministries = $this->getMinistries($result);
             $ministries = $this->getChartData($ministries);
         } else {
-            $data = Ministry::paginate(8);
+            $data = Ministry::all();
             $ministries = $this->getMinistries($data);
             $ministries = $this->getChartData($ministries);
         }
 
-       
+
         if ($request->ajax()) {
             return view('pages.ministry.cards', compact('ministries'));
         }
@@ -137,15 +138,20 @@ class MinistryController extends Controller
      */
     public function show(Ministry $ministry)
     {
+    
         $code = $ministry->code;
-        $cabinets = $ministry->cabinet;
-        $date = date('Y-m-d');
 
+        $latestExpenses = Payment::select('*')
+                        ->where('payment_code', 'LIKE', "$code%")
+                        ->orderby('payment_date', 'desc')
+                        ->first();
+        $latestDate = $latestExpenses->payment_date;
+        $cabinets = $ministry->cabinet;
         $payments = DB::table('payments')
             ->where('payment_code', 'LIKE', "$code%")
-            ->whereDate('payment_date', '=', "$date")
+            ->whereDate('payment_date', '=', "$latestDate")
             ->orderby('payment_date', 'desc')
-            ->paginate(2);
+            ->paginate(10);
 
         $data = $this->fiveYearTrend($code);
         return view('pages.ministry.single')->with([
@@ -154,6 +160,7 @@ class MinistryController extends Controller
             'payments' => $payments,
             'trend' => $data[1],
             'count' => $data[0],
+            'latestDate' => $latestDate
         ]);
     }
 
@@ -187,7 +194,7 @@ class MinistryController extends Controller
                 ->get();
             $data = DB::table('ministries')
                 ->where('name', 'LIKE', "%$query%")
-                ->paginate(8);
+                ->get();
             $ministries = $this->getMinistries($data);
             $ministries = $this->getChartData($ministries);
             echo $lists . '?';
@@ -224,12 +231,30 @@ class MinistryController extends Controller
             return redirect(route('home'));
         }
 
-        $ministries = Ministry::all();
+        
         $recent_activites = Activites::where('status', 'pending')->orderBY('id', 'DESC')
             ->limit(7)
             ->get();
         $total_activity = count(Activites::all()->where('status', 'pending'));
+        $ministries = collect([]); //initialize array
 
+        //query
+        $getMinistries = Ministry::all();
+        //get head
+        if (count($getMinistries) > 0) {
+            foreach ($getMinistries as $ministry) {
+                $head = Cabinet::where('ministry_code', $ministry->code)
+                ->where('role', 'Minister')->get();
+                if ($head) {
+                    $headArray = array("head" => count($head) > 0 ? $head[0]->name : 'Minister\'s Detail not Available yet');
+                    $newData = array_merge($headArray, array("ministry" => $ministry));
+                    
+                    $ministries->push($newData);
+                }
+            }
+        }
+        
+        
         return view('backend.ministry.view')->with([
             'ministries' => $ministries,
             'recent_activites' => $recent_activites,
@@ -245,7 +270,7 @@ class MinistryController extends Controller
             'code' => 'required | number',
             'ministry_shortname' => 'required',
             'ministry_twitter' => 'required',
-            'ministry_head' => 'required',
+            'head' => 'required',
             'website' => 'required',
             'sector_id' => 'required|number',
         ]);
@@ -257,44 +282,45 @@ class MinistryController extends Controller
         $new_ministry->name = $request->ministry_name;
         $new_ministry->shortname = $ministry_shortname;
         $new_ministry->twitter = $request->ministry_twitter;
-        $new_ministry->head = $request->ministry_head;
+        $new_ministry->head = $request->head;
         $new_ministry->website = $request->website;
         $new_ministry->code = $request->code;
         $new_ministry->sector_id = $request->sector_id;
         $save_new_ministry = $new_ministry->save();
         $auth = Auth::user();
         if ($save_new_ministry) {
-             
+
             Activites::create([
-                'description' =>$auth->name.' Added '. $request->ministry_name .' to the ministry table',
+                'description' => $auth->name . ' Added ' . $request->ministry_name . ' to the ministry table',
                 'username' => $auth->name,
                 'privilage' => implode(' ', $auth->roles->pluck('name')->toArray()),
                 'status' => 'pending'
             ]);
-        
-         
-             Session::flash('flash_message', 'New ministry created successfully!');
-             return redirect('/admin/ministry/view');
+
+
+            Session::flash('flash_message', 'New ministry created successfully!');
+            return redirect('/admin/ministry/view');
         } else {
             Session::flash('error_message', 'Cannot create new Ministry!');
             return redirect()->back();
         }
-    }
+    } 
 
     public function showEditForm($id)
     {
         if (Gate::denies('edit')) {
             return redirect(route('ministry.view'));
         }
-        
+
         $details = Ministry::findOrFail($id);
         $ministry_codes = Ministry::orderBY('code', 'ASC')->where('code', '!=', $details->code)->get();
         $sectors = Sector::all()->where('id', '!=', $details->sector_id);
         $sector_id_name = Sector::findOrFail($details->sector_id)->name;
         return view('backend.ministry.edit')
-        ->with(['details' => $details, 'ministry_codes' => $ministry_codes,
-        'sectors' => $sectors, 'sector_id_name' => $sector_id_name
-        ]);
+            ->with([
+                'details' => $details, 'ministry_codes' => $ministry_codes,
+                'sectors' => $sectors, 'sector_id_name' => $sector_id_name
+            ]);
     }
 
     public function editMinistry(Request $request, $id)
@@ -304,7 +330,7 @@ class MinistryController extends Controller
             'code' => 'required | number',
             'ministry_shortname' => 'required',
             'ministry_twitter' => 'required',
-            'ministry_head' => 'required',
+            'head' => 'required',
             'website' => 'required',
             'sector_id' => 'required|number',
         ]);
@@ -313,20 +339,20 @@ class MinistryController extends Controller
             'code' => $request->code,
             'shortname' => $request->ministry_shortname,
             'twitter' => $request->ministry_twitter,
-            'head' => $request->ministry_head,
+            'head' => $request->head,
             'website' => $request->website,
             'sector_id' => $request->sector_id,
         ]);
         $auth = Auth::user();
         if ($update) {
             Activites::create([
-                'description' =>$auth->name.'updated ' . $request->ministry_name . ' details',
+                'description' => $auth->name . 'updated ' . $request->ministry_name . ' details',
                 'username' => $auth->name,
                 'privilage' => implode(' ', $auth->roles->pluck('name')->toArray()),
                 'status' => 'pending'
             ]);
-             Session::flash('flash_message', 'Ministry details edited successfully!');
-             return redirect('/admin/ministry/view');
+            Session::flash('flash_message', 'Ministry details edited successfully!');
+            return redirect('/admin/ministry/view');
         } else {
             Session::flash('error_message', ' Ministry was not edited!');
             return redirect()->back();
@@ -348,7 +374,7 @@ class MinistryController extends Controller
         $delete = Ministry::where('id', $id)->delete();
         if ($delete) {
             Activites::create([
-                'description' => $auth->name.' deleted '.$name.' from the minstries table',
+                'description' => $auth->name . ' deleted ' . $name . ' from the minstries table',
                 'username' => $auth->name,
                 'privilage' => implode(' ', $auth->roles->pluck('name')->toArray()),
                 'status' => 'pending'

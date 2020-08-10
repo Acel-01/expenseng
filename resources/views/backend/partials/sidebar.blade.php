@@ -11,12 +11,14 @@
         </a></div>
       <div class="sidebar-wrapper">
         <ul class="nav">
-          <li class=" {{Route::is('dashboard')? 'nav-item active' : 'nav-item '}}  ">
-            <a class="nav-link" href="{{Route::is('dashboard')? '#' :route('dashboard')}}">
+            
+          <li class=' {{Route::is('dashboard')? 'nav-item active' : 'nav-item '}}  ''>
+            <a class='nav-link' href='{{Route::is('dashboard')? '#' :route('dashboard')}}'>
               <i class="material-icons">dashboard</i>
               <p>Dashboard</p>
             </a>
-          </li>
+          </li> 
+
           @can('manage-user')
           <li class="{{Route::is('users.view') || Route::is('users.create') || Route::is('users.edit')
           ? 'nav-item active' : 'nav-item'}} ">
@@ -66,6 +68,23 @@
             </a>
           </li>
 
+          <li class="{{Route::is('sector.view') || Route::is('sector.create') || Route::is('sector.edit')
+           ? 'nav-item active' : 'nav-item'}} ">
+            <a class="nav-link" href="{{Route::is('sector.view') || Route::is('sector.create') || Route::is('sector.edit')
+             ? '#' : route('sector.view')}}">
+              <i class="material-icons">work</i>
+              <p>Sector</p>
+            </a>
+          </li>
+
+          <li class="{{Route::is('team.view') || Route::is('team.create') || Route::is('team.edit')
+           ? 'nav-item active' : 'nav-item'}}  ">
+            <a class="nav-link" href="{{route('team.view')}}">
+              <i class="material-icons">people</i>
+              <p>Teams</p>
+            </a>
+          </li>
+
           <li class="{{Route::is('subscribe.view') || Route::is('subscribe.create') || Route::is('subscribe.edit')
            ? 'nav-item active' : 'nav-item'}} ">
             <a class="nav-link" href="{{Route::is('subscribe.view')? '#' :route('subscribe.view')}}">
@@ -81,17 +100,23 @@
             </a>
           </li>
 
-          <!-- <li class="nav-item "> -->
           <li class="{{Route::is('importExcel')
           ? 'nav-item active' : 'nav-item'}} ">
-            <!-- <a class="nav-link" href="#">
-             -->
             <a class="nav-link" href="{{Route::is('importExcel')? '#' :route('importExcel')}}">
 
             <i class="material-icons">note_add</i>
               <p>Upload Spreadsheet</p>
             </a>
           </li>
+
+           <li class='{{Route::is('blogetc.admin.index')
+          ? 'nav-item active' : 'nav-item'}} '>
+            <a class="nav-link" href="{{ route('blogetc.admin.index') }}">
+              <i class="material-icons">Blog</i>
+              <p>Blog</p>
+            </a>
+          </li>
+
 
           <li class="{{Route::is('comments')
           ? 'nav-item active' : 'nav-item'}} ">
@@ -106,6 +131,13 @@
           <a class="nav-link" href="{{route('sheets')}}">
           <i class="material-icons">attachment</i>
               <p>Sheets</p>
+          </a>
+          </li>
+
+            <li class="{{Route::is('website_stats')? 'active nav-item' : 'nav-item' }}">
+          <a class="nav-link" href="{{route('website_stats')}}">
+          <i class="material-icons">assessment</i>
+              <p>Website Statistics</p>
           </a>
           </li>
 

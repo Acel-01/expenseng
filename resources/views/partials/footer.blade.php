@@ -7,7 +7,7 @@
                     <a href="{{ url('/') }}">
                         <img src=" {{asset('images/Frame 390.svg')}}" class="ft" alt="Logo">
                     </a>
-                    <a href="https://twitter.com/expenseng" class="pt-3 footer-twitter"><i class="fab fa-twitter" aria-hidden="true"></i> @expenseng</a>
+                    <a href="https://twitter.com/expenseng" class="pt-3 footer-twitter" target="_blank"><i class="fab fa-twitter" aria-hidden="true"></i> @expenseng</a>
                 </div>
 
                 <div class="col-md-7 section-pages-link d-flex justify-content-md-end justify-content-sm-around pt-4 pb-5">
@@ -23,11 +23,18 @@
                             <li class="section-footer-links">
                                 <a href="{{ route('contractors') }}">Contractors</a>
                             </li>
+                            <li class="section-footer-links">
+                                <a href="{{ route('blogetc.index') }}">Blog</a>
+                            </li>
+                            <li class="section-footer-links">
+                                <a href="{{ route('teams') }}">Our Team</a>
+                            </li>
+
                         </ul>
 
                     </div>
                     <div class="footer-second mr-4 mr-lg-5">
-                        <h6>Profile</h6>
+                        <h6>Reports</h6>
                         <ul>
                             <li class="section-footer-links">
                                 <a  href="{{ route('expense.reports') }}">Expenditure Report</a>
@@ -65,6 +72,7 @@
                     <a href="/accessibility">Accessibility</a>
                     <a href="/privacy"> | Privacy Policy</a>
                     <a href="/FOIA"> | Freedom of Information Act</a>
+                    <a href="/FOIA#disclaimer"> | Disclaimer</a>
                     <a href="/faq"> | FAQ</a>
                 </div>
                 <div class="col-md-3">

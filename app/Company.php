@@ -3,10 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 use stdClass;
 
 class Company extends Model
 {
+    use Searchable;
+
     public $fillable = ['name', 'shortname', 'industry', 'ceo', 'twitter'];
     public function expense()
     {
@@ -44,5 +47,9 @@ class Company extends Model
     public function getRouteKeyName()
     {
         return 'shortname';
+    }
+
+    public function payments(){
+        return $this->hasMany(Payment::class, 'beneficiary', 'name');
     }
 }

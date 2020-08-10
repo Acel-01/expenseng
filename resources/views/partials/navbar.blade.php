@@ -16,10 +16,10 @@
                             <a  class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Expense</a>
                             <div class="dropdown-menu">
 
-                                    <a href="{{ route('expense.reports') }}" class="dropdown-item">Expenditure Reports</a>
+                                    <a href="{{ route('expense.reports') }}" class="dropdown-item">Daily Report</a>
 
 
-                                    <a href="{{ route('expense.ministry') }}" class="dropdown-item">Ministry Expense</a>
+                                    <a href="{{ route('expense.ministry') }}" class="dropdown-item">All Expenses</a>
 
                             </div>
 
@@ -31,6 +31,10 @@
                         <a class="nav-link section-nav-link" href="{{ route('contractors') }}">Contractors</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link section-nav-link" href="{{ route('blogetc.index') }}">Blog</a>
+                    </li>
+
+                    <li class="nav-item dropdown">
                         <a class="nav-link section-nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Reference</a>
                         <div class="dropdown-menu">
                             <a class="dropdown-item section-reference-dropdown" href="{{ route('about') }}">About Us</a>
@@ -38,9 +42,11 @@
                             <a class="dropdown-item section-reference-dropdown" href="{{ route('handles') }}">Government Twitter Handle</a>
                         </div>
                     </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link section-nav-link" href="{{ route('search') }}"><i class="fa fa-search inp"></i></a>
                     </li>
+                    
                 </ul>
             </div>
             <!--side menu open button-->
@@ -58,7 +64,7 @@
             <nav class="side-nav w-100">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link section-nav-link" href="{{ route('home') }}">Home</a>
+                        <a class="nav-link section-nav-link" href="{{ route('home') }}" target="_blank">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link collapsePagesSideMenu" data-toggle="collapse" href="#sideNavPages1">
@@ -83,7 +89,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link collapsePagesSideMenu" data-toggle="collapse" href="#sideNavPages2">
-                            Reference <i class="fas fa-chevron-down"></i>
+                            Reference <i class="fas fa-chevron-down" target="_blank"></i>
                         </a>
                         <div id="sideNavPages2" class="collapse sideNavPages">
                             <ul class="navbar-nav">
@@ -102,6 +108,7 @@
                     <li class="nav-item">
                         <a class="nav-link section-nav-link" href=""><i class="fa fa-search inp"></i></a>
                     </li>
+                    
                 </ul>
             </nav>
         </div>

@@ -4,20 +4,19 @@ namespace App\Http\Controllers;
 
 use App\BackgroundProcess;
 use App\Budget;
-use App\Console\Commands\ConnectToStreamingAPI;
 use App\Ministry;
 use App\Payment;
 use App\ProcessId;
 use App\Sector;
 use App\Tweet;
 use App\Activites;
-use App\Tweets;
 use Carbon\Carbon;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Twitter;
+use function GuzzleHttp\Psr7\str;
 
 class TwitterBot extends Controller
 {
@@ -82,11 +81,32 @@ class TwitterBot extends Controller
     /**
      * @return array
      */
-    public function paymentTweets()
+    public function pastTweets()
     {
-        $payments = Payment::where('payment_date', '>=', Carbon::now()->subMonth())->get();
+        $payments = Payment::where('payment_date', '<=', Carbon::now()->subDays(1))
+            ->whereTweeted(false)
+            ->orderBy('payment_date', "DESC")
+            ->take(1)->get();
+        return $this->paymentTweets($payments);
+    }
+    public function dailyTweets()
+    {
+        $payments = Payment::whereTweeted(false)
+            ->orderBy('payment_date', "DESC")
+            ->take(1)->get();
+        return $this->paymentTweets($payments);
+    }
+    public function paymentTweets($payments)
+    {
         foreach ($payments as $payment) {
-            array_push($this->tweets, $this->filterPaymentTweet($payment));
+            $date = Carbon::createFromFormat('Y-m-d', $payment->payment_date)
+                ->format('l \\T\\h\\e jS \\of F Y');
+            $ministry = Ministry::whereCode(substr($payment->payment_code, 0, 4))->first();
+            if (empty($ministry)) {
+                $this->tweets[$payment->id] = $this->style1($payment, $date);
+            } else {
+                $this->tweets[$payment->id] = $this->style2($payment, $date, $ministry);
+            }
         }
         return $this->tweets;
     }
@@ -95,25 +115,72 @@ class TwitterBot extends Controller
      * @param $payment
      * @return string
      */
-    private function filterPaymentTweet($payment)
+    public function tweetPayment(Request $request)
     {
-        $amount = $payment->amount;
-        $ministry = $payment->ministry()['name'];
-        $ministry_handle = $payment->ministry()['twitter'];
-        $minister = $payment->ministry()['cabinet']->where('role', '=', 'Minister')->first()->name;
-        $minister_handle = $payment->ministry()['cabinet']->where('role', '=', 'Minister')->first()->twitter_handle;
-        $description  = $payment->description;
-//        l jS \\of F Y
-        $date = Carbon::createFromFormat('Y-m-d', $payment->payment_date)->format('l \\T\\h\\e jS \\of F Y');
-        $company = DB::table('companies')->where('name', '=', $payment->beneficiary)->first();
-        $company_handle = $company ? $company->twitter : null;
-        $benefactor = $company ? $company->shortname  : $payment->beneficiary;
-        $tweet = 'On '.$date.', The '.$ministry.' '.$ministry_handle.' led by '.
-            $minister.' '.$minister_handle.
-            ', Payed The Sum of ₦'.$amount." to ".$benefactor.' '.$company_handle.' for the '.$description;
-        return $tweet;
+        if ($request->ajax()) {
+            try {
+                $payment = Payment::whereId($request->id)->first();
+                if (isset($payment->tweet_id)) {
+                    $id = $payment->tweet_id;
+                    if (isset($id)) {
+                        $tweets =  Twitter::postRt(''.$id);
+                        return  Response('retweeted');
+                    } else {
+                        return Response::json(array('msg'=> 'not tweeted'), 422);
+                    }
+                } else {
+                    $date = Carbon::createFromFormat('Y-m-d', $payment->payment_date)
+                        ->format('l \\T\\h\\e jS \\of F Y');
+                    $ministry = Ministry::whereCode(substr($payment->payment_code, 0, 4))->first();
+                    if (empty($ministry)) {
+                        $tweet = $this->style1($payment, $date);
+                    } else {
+                        $tweet = $this->style2($payment, $date, $ministry);
+                    }
+                    $twitter = new Tweet(trim($tweet));
+                    $tweet = $twitter->HashTag('expenseng')->send();
+                    Payment::whereId($request->id)->update(['tweeted' => true ,'tweet_id'=>
+                        json_decode($tweet)->id]);
+                    return Response("tweet sent ");
+                }
+            } catch (\Exception $e) {
+                return Response($e->getMessage(), 422);
+            }
+        }
     }
-
+    private function style1($payment, $date)
+    {
+        if (strlen($payment->organization) > 20) {
+            $organization = substr($payment->organization, 0, 20)."...";
+        } else {
+            $organization = $payment->organization;
+        }
+        if (strlen($payment->description) > 4) {
+            $last = " for  ". substr($payment->description, 0, 20)."..";
+        } else {
+            $last = " ";
+        }
+        return "On ".$date.", ".$organization." paid the sum of ₦".number_format($payment->amount, 2)
+            ." to ".$payment->beneficiary.$last;
+    }
+    private function style2($payment, $date, $ministry)
+    {
+        if (strlen($payment->description) > 4) {
+            $last = " for  ". substr($payment->description, 0, 20)."..";
+        } else {
+            $last = " ";
+        }
+        if (strlen($payment->organization) > 20) {
+            $organization = substr($payment->organization, 0, 20)."...";
+        } else {
+            $organization = $payment->organization;
+        }
+        $part = isset($ministry->twitter) ? $ministry->twitter : "";
+        return "On ".$date.", From the Ministry of ".$ministry->name." "
+            .$part.", "
+            .$organization." paid the sum of ₦".number_format($payment->amount, 2)
+            ." to ".$payment->beneficiary.$last;
+    }
     public function budgetTweet()
     {
         $budget = Budget::inRandomOrder()->first();
@@ -129,15 +196,20 @@ class TwitterBot extends Controller
             $ministry = Ministry::where('shortname', 'LIKE', "{$ministry_code}%")->first();
             $sector = Sector::whereId($sector_code)->first();
             if (is_null($sector)) {
-                return 'The amount of ₦'.$budget->amount." was allocated for ".$budget->project_name." in the ".$budget->year ." budget";
+                return 'The amount of ₦'.$budget->amount." was allocated for ".
+                    $budget->project_name." in the ".$budget->year ." budget";
             } else {
                 if (is_null($ministry)) {
-                    return 'The amount of ₦'.$budget->amount." was allocated for ".$budget->project_name." in the ".$budget->year ." budget";
+                    return 'The amount of ₦'.$budget->amount." was allocated for ".
+                        $budget->project_name." in the ".$budget->year ." budget";
                 }
-                return "From the " . $sector->name . " sector, The " . $ministry->name . " was allocated ₦" . $budget->amount . " in the " . $budget->year . " budget,for " . $budget->project_name;
+                return "From the " . $sector->name . " sector, The " . $ministry->name .
+                    " was allocated ₦" . $budget->amount . " in the " . $budget->year .
+                    " budget,for " . $budget->project_name;
             }
         } else {
-            return 'The amount of ₦'.$budget->amount." was allocated for ".$budget->project_name." in the ".$budget->year ." budget";
+            return 'The amount of ₦'.$budget->amount." was allocated for ".
+                $budget->project_name." in the ".$budget->year ." budget";
         }
     }
 
@@ -177,8 +249,19 @@ class TwitterBot extends Controller
     {
         if ($request ->ajax()) {
             try {
-                $tweets=  Twitter::getUserTimeline();
+                $tweets=  Twitter::getUserTimeline(['count'=> 30]);
                 return view('backend.tweets', compact('tweets'));
+            } catch (\Exception $exception) {
+                return Response::json(array("errors" => 'error occured'), 422);
+            }
+        }
+    }
+    public function retweet(Request $request)
+    {
+        if ($request ->ajax()) {
+            try {
+                $tweets=  Twitter::postRt(''.($request->id));
+                return  Response('retweeted');
             } catch (\Exception $exception) {
                 return Response::json(array("errors" => 'error occured'), 422);
             }

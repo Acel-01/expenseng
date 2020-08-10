@@ -33,26 +33,24 @@
                                                 <label for="inputText3" class="col-form-label">Ministry Name</label>
                                                 <input id="inputText3" name="ministry_name" 
                                                 type="text" class="form-control" 
-                                                placeholder="e.g Ministry of Agriculture" required>
+                                                placeholder="e.g Agriculture" required>
                                             </div>
                                             <div class="form-group">
                                                 <label for="ministryCode">Ministry Code</label>
+                                                <input type="number" name="code" class="form-control"
+                                                placeholder="e.g 01234" required />
                                                 
-                                                <select name="code" class="form-control" >
-
-                                                <option value="">Select Ministry Code</option>
-                                                @foreach($ministry_codes as $ministry_code)
-                                                <option name="code" class="form-control" 
-                                                value="{{$ministry_code->code}}" required>
-                                                    {{$ministry_code->code}}
-                                                </option>
-                                                @endforeach
-                                                </select>
                                             </div>
                                             <div class="form-group">
                                                 <label for="inputEmail">Short Name</label>
                                                 <input id="inputEmail" name="ministry_shortname" type="text" 
                                                 placeholder="e.g Agric" class="form-control" required />
+                                                
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="inputEmail">Ministry Head</label>
+                                                <input id="inputEmail" name="head" type="text" 
+                                                placeholder="john" class="form-control" required />
                                                 
                                             </div>
                                             <div class="form-group">
@@ -75,12 +73,7 @@
                                                 <input id="inputText4" name="ministry_twitter" type="text" 
                                                 class="form-control" placeholder="e.g @example" required />
                                             </div>
-                                            <div class="form-group">
-                                                <label for="inputPassword">Ministry Head</label>
-                                                <input id="inputPassword" name="ministry_head" type="text" 
-                                                placeholder="e.g Audu Ogbe" class="form-control" required />
-                                            </div>
-                                            <div class="form-group">
+                                             <div class="form-group">
                                                 <label for="inputPassword">Ministry's Website</label>
                                                 <input id="inputPassword" name="website" type="url"
                                                  placeholder="e.g  https://example.gov.ng" class="form-control" required>

@@ -95,7 +95,7 @@ body{
 }
 .cont-1{
   width:100%;
-  margin:1rem auto;
+  margin:1rem 0;
   padding:1rem;
   border-top:none;
   box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.04),
@@ -229,24 +229,21 @@ body{
 
 
 /* Styling for ministry cards section */
+#ministry_search{
+  padding-left:15px;
+  /* margin-bottom: 10px; */
+}
 .ministry-cards {
   position: relative;
 }
 
-.ministry-cards:hover{
+.cont-1:hover{
   cursor: pointer;
-  box-shadow: 0 .7rem 1.3rem rgba(0,0,0,.15)!important;;
+  transform: scale(1.05);
+  box-shadow: 0 .7rem 1.3rem rgba(0,0,0,.15) !important;
 }
 
 .ministry-cards a {
-  /* position: absolute;
-  display: block;
-  top: 50%;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  text-indent: -9999px;
-  z-index: 1000; */
   text-decoration: none;
 }
 
@@ -276,6 +273,11 @@ body{
   padding: 5px 15px;
   text-decoration: none;
   transition: background-color .3s;
+}
+
+#ministryList .dropdown-menu{
+  margin-left: 16px;
+  margin-right: 16px;
 }
 
 @media only screen and (max-width:768px){
